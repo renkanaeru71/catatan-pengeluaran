@@ -18,7 +18,7 @@ type QuickAddContextValue = {
 
 const QuickAddContext = createContext<QuickAddContextValue | null>(null);
 
-function useQuickAdd(): QuickAddContextValue {
+export function useQuickAdd(): QuickAddContextValue {
   const ctx = useContext(QuickAddContext);
   if (!ctx) {
     throw new Error("Quick add controls must be rendered inside <QuickAddProvider>.");
@@ -88,5 +88,33 @@ export function QuickAddFab() {
     >
       <Plus className="size-6" aria-hidden="true" />
     </button>
+  );
+}
+
+/**
+ * Inline "Tambah transaksi" trigger for empty states and recap pages, so the
+ * new entry lands on the day the user is looking at.
+ */
+export function QuickAddInlineButton({
+  dateKey,
+  label = "Tambah transaksi",
+  variant = "default",
+}: {
+  dateKey?: string;
+  label?: string;
+  variant?: "default" | "outline";
+}) {
+  const { open } = useQuickAdd();
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant={variant}
+      onClick={() => open(dateKey)}
+      className="items-center gap-1.5"
+    >
+      <Plus className="size-4" aria-hidden="true" />
+      <span>{label}</span>
+    </Button>
   );
 }
