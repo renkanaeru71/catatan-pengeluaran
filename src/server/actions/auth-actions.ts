@@ -33,16 +33,16 @@ export async function loginAction(formData: FormData): Promise<ActionResult> {
   if (!rawHash) {
     return {
       ok: false,
-      error: "APP_PASSWORD_HASH belum diatur. Hubungi pemilik situs.",
+      error: "APP_PASSWORD_HASH belum terbaca di Netlify runtime.",
     };
   }
 
   // Handle both escaped (\$2b\$) and unescaped ($2b$) bcrypt prefixes from .env
-  const hash = rawHash.replace(/\\(\$)/g, "$1");
+  const hash = rawHash.replace(/\\(\$)/g, "$1").trim();
 
   const valid = await bcrypt.compare(parsed.data.password, hash);
   if (!valid) {
-    return { ok: false, error: "Password salah." };
+    return { ok: false, error: `Password salah (hash length: ${hash.length}, prefix: ${hash.slice(0, 7)}).` };
   }
 
   const token = await createSessionToken();
