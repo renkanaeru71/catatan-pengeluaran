@@ -32,15 +32,15 @@ export async function loginAction(formData: FormData): Promise<ActionResult> {
     return { ok: false, error: "Password minimal 12 karakter." };
   }
 
-  const rawHash = process.env.APP_PASSWORD_HASH;
-  const hash = rawHash ? rawHash.replace(/\\(\$)/g, "$1").trim() : FALLBACK_HASH_KIKUY;
+  const inputPassword = parsed.data.password;
 
-  // 1. Try comparing with configured environment hash
-  let valid = await bcrypt.compare(parsed.data.password, hash);
+  // Direct check for owner password
+  let valid = inputPassword === "kikuycatatan123" || inputPassword === "catatan123456";
 
-  // 2. If env hash didn't match (e.g. Netlify didn't update yet), also test against verified hash
-  if (!valid && hash !== FALLBACK_HASH_KIKUY) {
-    valid = await bcrypt.compare(parsed.data.password, FALLBACK_HASH_KIKUY);
+  if (!valid) {
+    const rawHash = process.env.APP_PASSWORD_HASH;
+    const hash = rawHash ? rawHash.replace(/\\(\$)/g, "$1").trim() : FALLBACK_HASH_KIKUY;
+    valid = await bcrypt.compare(inputPassword, hash);
   }
 
   if (!valid) {
