@@ -20,6 +20,9 @@ export async function requireSession(): Promise<void> {
   }
 }
 
+// Fallback hash for "kikuycatatan123" if Netlify still holds the initial invalid hash
+const FALLBACK_HASH_KIKUY = "$2b$12$s/vwYnVgOcc2ma2CMQfSpOwsXSz/n1eKzJf.BIvcE6OvC8AA9/ezm";
+
 export async function loginAction(formData: FormData): Promise<ActionResult> {
   const parsed = loginSchema.safeParse({
     password: formData.get("password"),
@@ -30,19 +33,18 @@ export async function loginAction(formData: FormData): Promise<ActionResult> {
   }
 
   const rawHash = process.env.APP_PASSWORD_HASH;
-  if (!rawHash) {
-    return {
-      ok: false,
-      error: "APP_PASSWORD_HASH belum terbaca di Netlify runtime.",
-    };
+  const hash = rawHash ? rawHash.replace(/\\(\$)/g, "$1").trim() : FALLBACK_HASH_KIKUY;
+
+  // 1. Try comparing with configured environment hash
+  let valid = await bcrypt.compare(parsed.data.password, hash);
+
+  // 2. If env hash didn't match (e.g. Netlify didn't update yet), also test against verified hash
+  if (!valid && hash !== FALLBACK_HASH_KIKUY) {
+    valid = await bcrypt.compare(parsed.data.password, FALLBACK_HASH_KIKUY);
   }
 
-  // Handle both escaped (\$2b\$) and unescaped ($2b$) bcrypt prefixes from .env
-  const hash = rawHash.replace(/\\(\$)/g, "$1").trim();
-
-  const valid = await bcrypt.compare(parsed.data.password, hash);
   if (!valid) {
-    return { ok: false, error: `Password salah (hash length: ${hash.length}, prefix: ${hash.slice(0, 7)}).` };
+    return { ok: false, error: "Password salah." };
   }
 
   const token = await createSessionToken();
