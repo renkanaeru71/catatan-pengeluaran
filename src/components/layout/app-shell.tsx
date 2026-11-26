@@ -4,6 +4,7 @@ import {
   QuickAddHeaderButton,
   QuickAddFab,
 } from "@/components/layout/quick-add";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { getCategoryOptions } from "@/server/queries/category-queries";
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
@@ -15,7 +16,8 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         <DesktopSidebar />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="border-border/60 bg-background/80 supports-backdrop-filter:backdrop-blur sticky top-0 z-30 hidden h-14 items-center justify-end border-b px-8 md:flex">
+          <header className="border-border/60 bg-background/80 supports-backdrop-filter:backdrop-blur sticky top-0 z-30 flex h-14 items-center justify-end gap-2 border-b px-4 md:px-8">
+            <ThemeToggle />
             <QuickAddHeaderButton />
           </header>
 
