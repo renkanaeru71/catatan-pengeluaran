@@ -16,14 +16,25 @@ export function LoginForm() {
   function handleSubmit(formData: FormData) {
     setError(null);
     startTransition(async () => {
-      const result = await loginAction(formData);
-      if (!result.ok) {
-        setError(result.error);
-        toast.error(result.error);
-        return;
+      try {
+        const password = String(formData.get("password") || "");
+        const res = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password }),
+        });
+        const result = await res.json();
+        if (!result.ok) {
+          setError(result.error || "Password salah.");
+          toast.error(result.error || "Password salah.");
+          return;
+        }
+        window.location.href = "/";
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Gagal menghubungi server";
+        setError(msg);
+        toast.error(msg);
       }
-      router.replace("/");
-      router.refresh();
     });
   }
 
