@@ -47,3 +47,59 @@ memetakan waktu lokal WIB ke tanggal kalender yang benar.
 Versi `shadcn` CLI terbaru memasang varian `base-nova` yang memakai
 `@base-ui/react`, bukan Radix. Semua komponen UI mengikuti varian ini. Bila
 sebuah komponen butuh API Radix, bungkus ulang di `src/components/ui/`.
+
+## 7. Statistik dihitung di database, bukan di JavaScript
+
+Rekap memakai `groupBy`/`aggregate` Prisma dengan batas rentang `gte`/`lte`
+dalam UTC yang sudah dikonversi dari kalender Asia/Jakarta. Menarik semua baris
+lalu menjumlahkan di JS akan makin lambat seiring bertambahnya transaksi, dan
+rawan salah saat melintasi batas bulan.
+
+Logika yang tetap murni (`computePercentChange`, `computeAverage`,
+`zeroFillDays`, `comparisonDirection`) dipisah ke `src/lib/stats.ts` supaya bisa
+diuji tanpa database. `stats-queries.ts` me-re-export helper tersebut agar
+pemanggil punya satu pintu masuk.
+
+**Konsekuensi bila keliru:** kalau nanti butuh agregasi yang tidak bisa
+diekspresikan Prisma `groupBy` (mis. median), sebagian perhitungan harus pindah
+ke SQL mentah.
+
+## 8. Grafik Recharts tanpa animasi
+
+`<Bar>` dan `<Pie>` memakai `isAnimationActive={false}`. Animasi bawaan Recharts
+membuat batang sempat tidak terlihat setelah hidrasi cepat (dan pada tab yang
+di-throttle, animasi tidak pernah selesai sehingga batang tidak pernah muncul).
+Grafik rekap adalah alat baca angka, bukan ornamen; animasi masuk tidak sepadan
+dengan risiko data tidak tampil.
+
+Klik batang dipasang di `<Cell>` **dan** `onClick` grafik induk, karena
+`onClick` di `<Bar>` saja tidak selalu terpicu pada sentuhan.
+
+**Konsekuensi bila keliru:** tidak ada animasi masuk pada grafik.
+
+## 9. Filter transaksi dipisah ke modul murni
+
+`buildTransactionWhere`, `normalizeFilterParams`, `parsePage`, dan `PAGE_SIZE`
+tinggal di `src/lib/transaction-filters.ts` (tanpa impor Prisma), lalu
+dipakai `searchTransactions`. Dengan begitu semantik filter — rentang inklusif,
+pencarian catatan case-insensitive, kategori, dan pengamanan nomor halaman —
+bisa diuji tanpa database.
+
+Tanggal yang tidak bisa di-parse **diabaikan**, bukan melempar error: URL yang
+diketik manual harus menampilkan daftar tanpa filter, bukan halaman 500.
+
+**Konsekuensi bila keliru:** pengguna yang mengubah URL secara manual tidak
+mendapat pesan bahwa filternya tidak valid — daftar hanya tampil tanpa filter.
+
+## 10. Tema memakai `next-themes` dengan kelas `dark`
+
+`attribute="class"` + `defaultTheme="system"` + `enableSystem`, dan
+`<html suppressHydrationWarning>` karena skrip tema menulis kelas sebelum React
+hidrasi. `disableTransitionOnChange` mencegah kedipan warna saat berganti tema.
+
+Skeleton loading diletakkan per rute (`loading.tsx`) dan memakai komponen
+`Skeleton` shadcn, dengan `aria-busy` + teks `sr-only` agar pembaca layar tahu
+halaman sedang dimuat.
+
+**Konsekuensi bila keliru:** pengguna yang memilih tema manual kehilangan
+preferensi "ikuti sistem" sampai memilih ulang.
