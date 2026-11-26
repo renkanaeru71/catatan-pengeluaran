@@ -3,6 +3,25 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  NEXT_TELEMETRY_DISABLED = "1"
 
+# Plugin resmi Next.js: mengurus SSR, route handler, dan image optimization
+# di Netlify Functions. Jangan hapus — tanpa ini semua rute dinamis 404.
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Header keamanan dasar. Aplikasi ini satu-pemilik dan tidak pernah di-embed,
+# jadi frame ditolak sepenuhnya.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Cookie sesi bertanda tangan tidak boleh bocor lewat Referer ke domain lain.
+[[headers]]
+  for = "/login"
+  [headers.values]
+    Cache-Control = "no-store, max-age=0"
