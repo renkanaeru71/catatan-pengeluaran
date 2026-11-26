@@ -48,8 +48,26 @@ export function formatDateLabel(date: Date): string {
   return `${day} ${month} ${year}`;
 }
 
-/** Format a date range as "24–30 Nov 2026" or "30 Nov – 6 Des 2026". */
-export function formatRangeLabel(start: Date, end: Date): string {
+/** Format a month as "November 2026" (full Indonesian month name). */
+export function formatMonthLabel(date: Date): string {
+  const full = [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+  ];
+  return `${full[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+}
+
+/** Format a date range as "24–30 Nov 2026" or "30 Nov – 6 Des 2026". */export function formatRangeLabel(start: Date, end: Date): string {
   const sameMonth =
     start.getUTCMonth() === end.getUTCMonth() &&
     start.getUTCFullYear() === end.getUTCFullYear();
