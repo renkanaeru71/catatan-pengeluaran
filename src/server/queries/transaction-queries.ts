@@ -1,4 +1,15 @@
 import { prisma } from "@/lib/db";
+import {
+  buildTransactionWhere,
+  PAGE_SIZE,
+  type TransactionFilterParams,
+} from "@/lib/transaction-filters";
+
+export {
+  buildTransactionWhere,
+  PAGE_SIZE,
+  type TransactionFilterParams,
+};
 
 export type TransactionWithCategory = {
   id: string;
@@ -63,4 +74,46 @@ export async function getTransactionById(
     where: { id },
     select: transactionSelect,
   });
+}
+
+export type SearchTransactionsParams = TransactionFilterParams & {
+  page?: number;
+  pageSize?: number;
+};
+
+/**
+ * Filtered, paginated transaction search.
+ * Returns items, total matching rows, and the computed page count.
+ */
+export async function searchTransactions(params: SearchTransactionsParams): Promise<{
+  items: TransactionWithCategory[];
+  total: number;
+  pageCount: number;
+  page: number;
+  pageSize: number;
+}> {
+  const page = Math.max(params.page ?? 1, 1);
+  const pageSize = Math.max(params.pageSize ?? PAGE_SIZE, 1);
+  const where = buildTransactionWhere(params);
+
+  const [total, items] = await Promise.all([
+    prisma.transaction.count({ where }),
+    prisma.transaction.findMany({
+      where,
+      select: transactionSelect,
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+  ]);
+
+  const pageCount = Math.max(Math.ceil(total / pageSize), 1);
+
+  return {
+    items,
+    total,
+    pageCount,
+    page,
+    pageSize,
+  };
 }
