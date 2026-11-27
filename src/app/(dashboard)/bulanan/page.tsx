@@ -11,6 +11,7 @@ import {
 import { formatDateLabel, formatMonthLabel } from "@/lib/format";
 import { getMonthlySummary } from "@/server/queries/stats-queries";
 import { PeriodNav } from "@/components/layout/period-nav";
+import { ExportPdfButton } from "@/components/shared/export-pdf-button";
 import { MonthlyDailyChart } from "@/components/charts/monthly-daily-chart";
 import { CategoryDonut } from "@/components/charts/category-donut";
 import { MonthComparisonBadge } from "@/components/shared/month-comparison";
@@ -58,17 +59,43 @@ export default async function MonthlyPage({ searchParams }: MonthlyPageProps) {
     ? toDateKey(today)
     : undefined;
 
+  const monthLabel = formatMonthLabel(anchor);
+
+  const pdfData = {
+    periodLabel: monthLabel,
+    total: summary.total,
+    averagePerDay: summary.averagePerDay,
+    days: summary.days.map((d) => ({
+      dateLabel: formatDateLabel(d.date),
+      total: d.total,
+    })),
+    categories: summary.byCategory.map((c) => ({
+      name: c.name,
+      total: c.total,
+      percentage: summary.total > 0 ? Math.round((c.total / summary.total) * 100) : 0,
+    })),
+  };
+
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Rekap Bulanan</h1>
-        <p className="text-muted-foreground text-sm">
-          Ringkasan pengeluaran per bulan beserta perbandingannya.
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Rekap Bulanan</h1>
+          <p className="text-muted-foreground text-sm">
+            Ringkasan pengeluaran per bulan beserta perbandingannya.
+          </p>
+        </div>
+        <div>
+          <ExportPdfButton
+            type="monthly"
+            data={pdfData}
+            filename={`laporan-bulanan-${toDateKey(start).slice(0, 7)}`}
+          />
+        </div>
       </div>
 
       <PeriodNav
-        label={formatMonthLabel(anchor)}
+        label={monthLabel}
         prevHref={`/bulanan?date=${toDateKey(prevAnchor)}`}
         nextHref={`/bulanan?date=${toDateKey(nextAnchor)}`}
         nextDisabled={nextDisabled}

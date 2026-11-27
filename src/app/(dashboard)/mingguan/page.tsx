@@ -7,9 +7,10 @@ import {
   parseDateKey,
   weekRange,
 } from "@/lib/date";
-import { formatRangeLabel } from "@/lib/format";
+import { formatRangeLabel, formatDateLabel } from "@/lib/format";
 import { getWeeklySummary } from "@/server/queries/stats-queries";
 import { PeriodNav } from "@/components/layout/period-nav";
+import { ExportPdfButton } from "@/components/shared/export-pdf-button";
 import { DailyBarChart } from "@/components/charts/daily-bar-chart";
 import { CategoryBreakdown } from "@/components/charts/category-breakdown";
 import { Money } from "@/components/shared/money";
@@ -61,18 +62,42 @@ export default async function WeeklyPage({ searchParams }: WeeklyPageProps) {
   const highlightDateKey = isCurrentWeek ? todayKey : undefined;
 
   const hasSpending = summary.total > 0;
+  const rangeLabel = formatRangeLabel(start, end);
+
+  const pdfData = {
+    periodLabel: rangeLabel,
+    total: summary.total,
+    days: summary.days.map((d) => ({
+      dateLabel: formatDateLabel(d.date),
+      total: d.total,
+    })),
+    categories: summary.byCategory.map((c) => ({
+      name: c.name,
+      total: c.total,
+      percentage: summary.total > 0 ? Math.round((c.total / summary.total) * 100) : 0,
+    })),
+  };
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Rekap Mingguan</h1>
-        <p className="text-muted-foreground text-sm">
-          Pengeluaran per minggu, dihitung dari hari Senin sampai Minggu.
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Rekap Mingguan</h1>
+          <p className="text-muted-foreground text-sm">
+            Pengeluaran per minggu, dihitung dari hari Senin sampai Minggu.
+          </p>
+        </div>
+        <div>
+          <ExportPdfButton
+            type="weekly"
+            data={pdfData}
+            filename={`laporan-mingguan-${toDateKey(start)}`}
+          />
+        </div>
       </div>
 
       <PeriodNav
-        label={formatRangeLabel(start, end)}
+        label={rangeLabel}
         prevHref={`/mingguan?date=${toDateKey(prevAnchor)}`}
         nextHref={`/mingguan?date=${toDateKey(nextAnchor)}`}
         nextDisabled={nextDisabled}
