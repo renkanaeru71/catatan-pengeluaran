@@ -68,7 +68,7 @@ export function MobileSidebarDrawer() {
       <aside
         aria-label="Menu navigasi samping"
         className={cn(
-          "bg-background fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r p-4 shadow-2xl transition-transform duration-200 ease-in-out md:hidden",
+          "bg-white dark:bg-zinc-950 fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border p-4 shadow-2xl transition-transform duration-200 ease-in-out md:hidden",
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
