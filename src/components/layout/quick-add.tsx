@@ -76,7 +76,7 @@ export function QuickAddHeaderButton() {
   );
 }
 
-/** Floating action button for mobile, sitting above the bottom tab bar. */
+/** Floating action button for mobile. */
 export function QuickAddFab() {
   const { open } = useQuickAdd();
   return (
@@ -84,7 +84,7 @@ export function QuickAddFab() {
       type="button"
       onClick={() => open()}
       aria-label="Tambah transaksi"
-      className="bg-primary text-primary-foreground fixed right-4 bottom-20 z-40 flex size-14 items-center justify-center rounded-full shadow-lg shadow-black/20 transition-transform active:scale-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none md:hidden"
+      className="bg-primary text-primary-foreground fixed right-5 bottom-6 z-40 flex size-14 items-center justify-center rounded-full shadow-lg shadow-black/20 transition-transform active:scale-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none md:hidden"
     >
       <Plus className="size-6" aria-hidden="true" />
     </button>
